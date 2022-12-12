@@ -1,5 +1,4 @@
 import psycopg2
-import sqlite3
 from config import pass2
 
 
@@ -10,11 +9,11 @@ def add_offer(name=None, age=None, male=None, city=None, foto=None, user_id=1):
     cur.execute('''    INSERT INTO offer(  name, age, male, city, foto)
                             VALUES  (%s, %s, %s, %s, %s);
                               ''',(name, age, male, city, foto,))
-    # TODO дописать user_id
-    # cur.execute('''    INSERT INTO offer( user_id)
-    #                             VALUES  (%s)
-    #                             WHERE name = %s;
-    #                               ''', (str(user_id), name))
+
+    cur.execute('''    UPDATE offer
+                          SET user_id = %s
+                        WHERE name = %s;
+                                  ''', (user_id, name))
 
 
 def add_user(name=None, age=None, male=None, city=None):
@@ -25,7 +24,7 @@ def add_user(name=None, age=None, male=None, city=None):
                             VALUES (%s, %s, %s, %s);''',(name, str(age), male, city))
 
 def create_bd():
-    conn = psycopg2.connect( user="postgres", password="pass2", host="127.0.0.1", port="5432")
+    conn = psycopg2.connect( user="postgres", password=pass2, host="127.0.0.1", port="5432")
     conn.autocommit=True
     cur = conn.cursor()
     cur.execute('CREATE DATABASE vkinder;')
@@ -76,7 +75,8 @@ def create_structure():
                                                                 name VARCHAR(70),
                                                                 age INT,
                                                                 male VARCHAR(10), 
-                                                                city VARCHAR(20)
+                                                                city VARCHAR(20),
+                                                                email VARCHAR(30) UNIQUE 
                                                                 );''')
 
             cur.execute('''CREATE TABLE IF NOT EXISTS offer(offer_id SERIAL PRIMARY KEY,
@@ -119,12 +119,12 @@ def create_structure():
 
 
 if __name__ == '__main__':
-    pass
-    # create_bd()
+
+    create_bd()
     # clear()
     # create_structure()
-    # add_user(name='Саша', age=28, male='м', city='Москва')
-    # add_offer(name='Маша', age='31', male='ж', city='Москва', foto= 'http1, http2')
+    # add_user(name='Иван Иванович', age=28, male='м', city='Москва')
+    # add_offer(name='Мария Иванова', age='31', male='ж', city='Москва', foto= 'http1, http2')
 
     # with psycopg2.connect(database='VKinder_db', user='postgres', password='postgres') as con:
     #
