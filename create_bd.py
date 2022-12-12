@@ -3,24 +3,29 @@ import sqlite3
 from config import pass2
 
 
-# def add_offer(name=None, age=None, male=None, city=None, foto=None, user=1):
-#     conn = psycopg2.connect(database="vkinder", user="postgres", password=pass2, host="127.0.0.1", port="5432")
-#     conn.autocommit = True
-#     cur = conn.cursor()
-#     cur.execute('''    INSERT INTO offer( user_id, name, age, male, city, foto)
-#                             SELECT user_id, %s, %s, %s, %s, s
-#                               FROM users;
-#                               WHERE user_id = %s''',(name, age, male, city, foto, user))
+def add_offer(name=None, age=None, male=None, city=None, foto=None, user_id=1):
+    conn = psycopg2.connect(database="vkinder", user="postgres", password=pass2, host="127.0.0.1", port="5432")
+    conn.autocommit = True
+    cur = conn.cursor()
+    cur.execute('''    INSERT INTO offer(  name, age, male, city, foto)
+                            VALUES  (%s, %s, %s, %s, %s);
+                              ''',(name, age, male, city, foto,))
+    # TODO дописать user_id
+    # cur.execute('''    INSERT INTO offer( user_id)
+    #                             VALUES  (%s)
+    #                             WHERE name = %s;
+    #                               ''', (str(user_id), name))
+
 
 def add_user(name=None, age=None, male=None, city=None):
     conn = psycopg2.connect(database="vkinder", user="postgres", password=pass2, host="127.0.0.1", port="5432")
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute('''    INSERT INTO users( name, age, male, city)
-                            VALUES (%s, %s, %s, %s);''',(name, age, male, city))
+                            VALUES (%s, %s, %s, %s);''',(name, str(age), male, city))
 
 def create_bd():
-    conn = psycopg2.connect( user="postgres", password="123st321", host="127.0.0.1", port="5432")
+    conn = psycopg2.connect( user="postgres", password="pass2", host="127.0.0.1", port="5432")
     conn.autocommit=True
     cur = conn.cursor()
     cur.execute('CREATE DATABASE vkinder;')
@@ -33,7 +38,7 @@ def clear():
     ''' Удаление таблиц'''
     print('-' * 20, 'Подготовка', '-' * 20)
 
-    conn = psycopg2.connect(database="vkinder", user="postgres", password="123st321", host="127.0.0.1", port="5432")
+    conn = psycopg2.connect(database="vkinder", user="postgres", password=pass2, host="127.0.0.1", port="5432")
 
     cur = conn.cursor()
     with conn.cursor() as cur:
@@ -77,7 +82,7 @@ def create_structure():
             cur.execute('''CREATE TABLE IF NOT EXISTS offer(offer_id SERIAL PRIMARY KEY,
                                                                     user_id  INT REFERENCES users(user_id),
                                                                     name VARCHAR(70),
-                                                                    age VARCHAR(30),
+                                                                    age INT,
                                                                     male VARCHAR(10), 
                                                                     city VARCHAR(20),
                                                                     foto VARCHAR(150)
@@ -114,11 +119,12 @@ def create_structure():
 
 
 if __name__ == '__main__':
+    pass
     # create_bd()
     # clear()
     # create_structure()
-    add_user(name='Саша', age=28, male='м', city='Москва')
-    # add_offer(name='Маша', age=31, male='ж', city='Москва', foto= 'http\\1, http\\2')
+    # add_user(name='Саша', age=28, male='м', city='Москва')
+    # add_offer(name='Маша', age='31', male='ж', city='Москва', foto= 'http1, http2')
 
     # with psycopg2.connect(database='VKinder_db', user='postgres', password='postgres') as con:
     #
