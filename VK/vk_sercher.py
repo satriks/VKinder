@@ -21,7 +21,7 @@ class VKsercher:
                                 age_from= age - 3,
                                 age_to= age + 3,
                                 has_photo= 1,
-                                count= 100,
+                                count= 10,
                                 online= 1,
                                 hometown= city,
                                 is_closed= False,
@@ -38,16 +38,23 @@ class VKsercher:
                 self.data_dict[data['id']] = [data['first_name'] + ' ' + data['last_name']] + [age // 366]
 
     def get_photo(self):
+        ''' Добавляет в к найденным акайнтам 3 самы популярные их фото'''
         for id in self.data_dict:
             photo = self.vk.photos.getAll(owner_id=id, photo_sizes =1 , extended= 1)
-            [print(photo['likes'] ) for _ in photo['items']]
-            break
+            self.data_dict[id] = self.data_dict.get(id) + (list(map(lambda x : x[1],(sorted([(x['likes']['count'], x['sizes'][-1]['url']  ) for x in photo['items']])[-1:-4:-1]))))
 
-if __name__ == '__main__':
-    serch = VKsercher()
-    serch.search(30,1,'Москва',offset=10)
-    # print(serch.data_dict)
-    serch.get_photo()
+    def get_user_info(self):
+        '''Выводит данне о user др, город, пол '''
+        user = self.vk.users.get(user_ids=803908, fields = ('bdate', 'city','sex') )
+        print(user)
+
+# if __name__ == '__main__':
+#
+#     serch = VKsercher()
+#     print(serch.get_user_info())
+#     serch.search(30,1,'Москва',offset=70)
+#     serch.get_photo()
+#     print(serch.data_dict)
 
 
 
