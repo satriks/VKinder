@@ -25,7 +25,7 @@ class VKsercher:
                                 online= 1,
                                 hometown= city,
                                 is_closed= False,
-                                offset = offset + 50,
+                                offset = offset + 90,
                                 fields=('photo_max_orig', 'bdate')
                                )
 

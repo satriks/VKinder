@@ -52,9 +52,17 @@ def attach(data, peer_id):
         os.remove("img.jpg")
     return ','.join(attachments)
 
+def get_offer(user_vk_id, n=1):
+    offer = ORM.get_condidat(n)
+    if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)) or offer is None:
+        return get_offer(user_vk_id, n + 1)
+    else:
+        return offer
+    # TODO check logic
+
 def main():
     vk_serch = vk_sercher.VKsercher()
-
+    n = 1
     for event in longpool.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             msg = event.text.lower()
@@ -67,23 +75,40 @@ def main():
 
             if msg == 'подобрать':
                 sender(id, 'Идет обработка, подождите ....')
+
                 vk_serch.search(*ORM.get_serch_data(id))
                 vk_serch.get_photo()
                 for cand_id, data in (vk_serch.data_dict.items()):
                     ORM.add_candidat(cand_id, data, id)
 
-                offer = ORM.get_condidat(1)
-
+                offer = get_offer(id)
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2), attachments=attach(offer,id) )
+
+            if msg == 'следущий':
+                offer = get_offer(id, n + 1)
+
+                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
+                       attachments=attach(offer, id))
+
+
+            if msg == 'в избранное':
+                ORM.add_favorit(offer.condidate_vk_id)
+                offer = ORM.get_condidat(1 + n)
+                sender(id, f'Пользователь {offer.name} добавлен в блок', keyboard(2))
+                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
+                       attachments=attach(offer, id))
+                n += 1   #TODO check next
+
+            if msg == 'в черный список':
+                ORM.add_block(offer.condidate_vk_id)
+                offer = ORM.get_condidat(1 + n)
+                sender(id, f'Пользователь {offer.name} добавлен в блок', keyboard(2))
+                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
+                       attachments=attach(offer, id))
+                n += 1  #TODO check next
 
             if msg == 'показать избранное':
                 sender(id, 'Пока так не уменю2, но скоро научусь', keyboard(2))
-            if msg == 'в избранное':
-                sender(id, 'Пока так не уменю3, но скоро научусь добавлять', keyboard(2))
-            if msg == 'в черный список':
-                sender(id, 'Пока так не уменю4, но скоро научусь', keyboard(2))
-            if msg == 'следущий':
-                sender(id, 'Пока так не уменю1, но скоро научусь', keyboard(2))
 
 if __name__ == '__main__':
     # ORM.create_bd()
