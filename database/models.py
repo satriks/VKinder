@@ -26,7 +26,7 @@ class Condidate(Base):
     users = relationship('User', backref = 'user_acount')
 
     def __repr__(self):
-        return f'{self.name}  --- vk_id ={self.condidate_vk_id} --- id_bd ={self.condidat_id}'
+        return f'{self.name}  --- vk_id = {self.condidate_vk_id} --- id_bd = {self.condidate_id}'
 
 class Favorit(Base):
     __tablename__ = 'favorit'

@@ -58,6 +58,12 @@ def get_serch_data(vk_id):
     session.close()
     return (user.age, sex, user.city)
 
+def get_condidat(id):
+    session = Session()
+    condidat = session.query(Condidate).filter(Condidate.condidate_id == id).first()
+    return condidat
+
+
 
 def clear_table():
     Base.metadata.drop_all(engine)

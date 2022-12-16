@@ -1,6 +1,8 @@
 from datetime import datetime
 
-import vk_api
+
+import vk_api, requests, os
+from vk_api import VkUpload
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkLongPoll, VkEventType
 
@@ -15,10 +17,12 @@ session_api = vk_session.get_api()
 longpool = VkLongPoll(vk_session)
 
 
-def sender(id, text, keybord=None):
-    post = {'user_id': id, 'message': text, 'random_id': 0}
+def sender(id, text, keybord=None, attachments=None):
+    post = {'user_id': id, 'message': text, 'random_id': 0 }
     if keybord != None:
         post['keyboard'] = keybord.get_keyboard()
+    if attachments:
+        post['attachment'] = attachments
     vk_session.method('messages.send', post)
 
 
@@ -34,26 +38,44 @@ def keyboard(first=1):
     keybord.add_button('В черный список', VkKeyboardColor.NEGATIVE)
     return keybord
 
+def attach(data, peer_id):
+
+    attachments = []
+    for foto in [data.foto1, data.foto2, data.foto3]:
+        p = requests.get(foto)
+        out = open("img.jpg", "wb")
+        out.write(p.content)
+        out.close()
+        upload = VkUpload(vk_session)
+        photo = upload.photo_messages("img.jpg", peer_id=peer_id)
+        attachments.append(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
+        os.remove("img.jpg")
+    return ','.join(attachments)
 
 def main():
-    vk = vk_sercher.VKsercher()
+    vk_serch = vk_sercher.VKsercher()
 
     for event in longpool.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             msg = event.text.lower()
             id = event.user_id
-            user_data = vk.get_user_info(id)
+            user_data = vk_serch.get_user_info(id)
             count_age = datetime.now().year - int(user_data['bdate'].split('.')[-1])
             ORM.add_user(vk_id=user_data['id'], age=count_age, city=user_data['city']['title'], sex=user_data['sex'])
             if msg == 'привет':
                 sender(id, 'Начнем ?', keyboard())
 
             if msg == 'подобрать':
-                vk.search(*ORM.get_serch_data(id))
-                vk.get_photo()
-                for cand_id, data in (vk.data_dict.items()):
+                sender(id, 'Идет обработка, подождите ....')
+                vk_serch.search(*ORM.get_serch_data(id))
+                vk_serch.get_photo()
+                for cand_id, data in (vk_serch.data_dict.items()):
                     ORM.add_candidat(cand_id, data, id)
-                sender(id, 'Пока так не уменю1, но скоро научусь', keyboard(2))
+
+                offer = ORM.get_condidat(1)
+
+                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2), attachments=attach(offer,id) )
+
             if msg == 'показать избранное':
                 sender(id, 'Пока так не уменю2, но скоро научусь', keyboard(2))
             if msg == 'в избранное':
