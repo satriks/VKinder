@@ -21,11 +21,11 @@ class VKsercher:
                                 age_from= age - 3,
                                 age_to= age + 3,
                                 has_photo= 1,
-                                count= 10,
+                                count= 20,
                                 online= 1,
                                 hometown= city,
                                 is_closed= False,
-                                offset = offset,
+                                offset = offset + 50,
                                 fields=('photo_max_orig', 'bdate')
                                )
 
@@ -40,8 +40,11 @@ class VKsercher:
     def get_photo(self):
         ''' Добавляет в к найденным акайнтам 3 самы популярные их фото'''
         for id in self.data_dict:
-            photo = self.vk.photos.getAll(owner_id=id, photo_sizes =1 , extended= 1)
-            self.data_dict[id] = self.data_dict.get(id) + (list(map(lambda x : x[1],(sorted([(x['likes']['count'], x['sizes'][-1]['url']  ) for x in photo['items']])[-1:-4:-1]))))
+            if len(self.data_dict.get(id)) > 2 :
+                continue
+            else:
+                photo = self.vk.photos.getAll(owner_id=id, photo_sizes =1 , extended= 1)
+                self.data_dict[id] = self.data_dict.get(id) + (list(map(lambda x : x[1],(sorted([(x['likes']['count'], x['sizes'][-1]['url']  ) for x in photo['items']])[-1:-4:-1]))))
 
     def get_user_info(self, id):
         '''Выводит данне о user др, город, пол '''

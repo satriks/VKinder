@@ -42,22 +42,27 @@ def main():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             msg = event.text.lower()
             id = event.user_id
-            print(vk.get_user_info(id))
             user_data = vk.get_user_info(id)
             count_age = datetime.now().year - int(user_data['bdate'].split('.')[-1])
             ORM.add_user(vk_id=user_data['id'], age=count_age, city=user_data['city']['title'], sex=user_data['sex'])
             if msg == 'привет':
                 sender(id, 'Начнем ?', keyboard())
 
-            if msg == 'подобрать' or 'следущий':
-                sender(id, 'Пока так не уменю, но скоро научусь', keyboard(2))
+            if msg == 'подобрать':
+                vk.search(*ORM.get_serch_data(id))
+                vk.get_photo()
+                for cand_id, data in (vk.data_dict.items()):
+                    ORM.add_candidat(cand_id, data, id)
+                sender(id, 'Пока так не уменю1, но скоро научусь', keyboard(2))
             if msg == 'показать избранное':
-                sender(id, 'Пока так не уменю, но скоро научусь', keyboard(2))
+                sender(id, 'Пока так не уменю2, но скоро научусь', keyboard(2))
             if msg == 'в избранное':
-                sender(id, 'Пока так не уменю, но скоро научусь добавлять', keyboard(2))
+                sender(id, 'Пока так не уменю3, но скоро научусь добавлять', keyboard(2))
             if msg == 'в черный список':
-                sender(id, 'Пока так не уменю, но скоро научусь', keyboard(2))
-
+                sender(id, 'Пока так не уменю4, но скоро научусь', keyboard(2))
+            if msg == 'следущий':
+                sender(id, 'Пока так не уменю1, но скоро научусь', keyboard(2))
 
 if __name__ == '__main__':
+    # ORM.create_bd()
     main()

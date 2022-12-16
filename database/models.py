@@ -18,7 +18,7 @@ class Condidate(Base):
     __tablename__ = 'condidate'
     condidate_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String)
     condidate_vk_id = Column(Integer, nullable=False)
     foto1 = Column(String)
     foto2 = Column(String)
