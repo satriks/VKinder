@@ -16,7 +16,7 @@ class User(Base):
 
 class Condidate(Base):
     __tablename__ = 'condidate'
-    condidat_id = Column(Integer, primary_key=True)
+    condidate_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
     name = Column(String, nullable=False)
     condidate_vk_id = Column(Integer, nullable=False)
@@ -32,7 +32,7 @@ class Favorit(Base):
     __tablename__ = 'favorit'
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
-    condidat_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
+    condidate_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
     user = relationship('User', backref='user_acount')
     condidat = relationship('Condidate', backref='condidat')
 
@@ -40,6 +40,6 @@ class Block(Base):
     __tablename__ = 'block'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
-    condidat_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
+    condidate_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
     user = relationship('User', backref='user_acount')
     condidat = relationship('Condidate', backref='condidat')

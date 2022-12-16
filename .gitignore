@@ -4,3 +4,4 @@ config.py
 smf.py
 .project
 __pycache__/
+settings
