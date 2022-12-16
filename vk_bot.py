@@ -1,8 +1,14 @@
+from datetime import datetime
+
 import vk_api
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 from config import token_group
+from VK import vk_sercher
+from database import ORM
+
+
 
 vk_session = vk_api.VkApi(token=token_group)
 session_api = vk_session.get_api()
@@ -30,10 +36,16 @@ def keyboard(first=1):
 
 
 def main():
+    vk = vk_sercher.VKsercher()
+
     for event in longpool.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             msg = event.text.lower()
             id = event.user_id
+            print(vk.get_user_info(id))
+            user_data = vk.get_user_info(id)
+            count_age = datetime.now().year - int(user_data['bdate'].split('.')[-1])
+            ORM.add_user(vk_id=user_data['id'], age=count_age, city=user_data['city']['title'], sex=user_data['sex'])
             if msg == 'привет':
                 sender(id, 'Начнем ?', keyboard())
 

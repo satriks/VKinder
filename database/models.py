@@ -23,7 +23,7 @@ class Condidate(Base):
     foto1 = Column(String)
     foto2 = Column(String)
     foto3 = Column(String)
-    user = relationship('User', backref = 'user_acount')
+    users = relationship('User', backref = 'user_acount')
 
     def __repr__(self):
         return f'{self.name}  --- vk_id ={self.condidate_vk_id} --- id_bd ={self.condidat_id}'
@@ -33,7 +33,7 @@ class Favorit(Base):
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
     condidate_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
-    user = relationship('User', backref='user_acount')
+    users_favorit = relationship('User', backref='acount_user')
     condidat = relationship('Condidate', backref='condidat')
 
 class Block(Base):
@@ -41,5 +41,5 @@ class Block(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
     condidate_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
-    user = relationship('User', backref='user_acount')
-    condidat = relationship('Condidate', backref='condidat')
+    users_block = relationship('User', backref='acounts_user')
+    condidat = relationship('Condidate', backref='condidats')

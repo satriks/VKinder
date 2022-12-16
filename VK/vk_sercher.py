@@ -43,10 +43,10 @@ class VKsercher:
             photo = self.vk.photos.getAll(owner_id=id, photo_sizes =1 , extended= 1)
             self.data_dict[id] = self.data_dict.get(id) + (list(map(lambda x : x[1],(sorted([(x['likes']['count'], x['sizes'][-1]['url']  ) for x in photo['items']])[-1:-4:-1]))))
 
-    def get_user_info(self):
+    def get_user_info(self, id):
         '''Выводит данне о user др, город, пол '''
-        user = self.vk.users.get(user_ids=803908, fields = ('bdate', 'city','sex') )
-        print(user)
+        user = self.vk.users.get(user_ids=id, fields = ('bdate', 'city','sex') )
+        return user[0]
 
 # if __name__ == '__main__':
 #
