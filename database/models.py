@@ -37,7 +37,7 @@ class Favorit(Base):
     condidat = relationship('Condidate', backref='condidat')
 
 class Block(Base):
-    __tablename__ = 'favorit'
+    __tablename__ = 'block'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
     condidat_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
