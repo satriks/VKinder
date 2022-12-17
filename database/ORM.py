@@ -41,18 +41,18 @@ def add_candidat(condidate_vk_id, data, user_vk_id):
     condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
     user = session.query(User).filter(User.vk_id == user_vk_id).first()
     if condidat is None:
-        new_condidate = Condidate(condidate_vk_id=condidate_vk_id ,user_id = user.user_id)
+        new_condidate = Condidate(condidate_vk_id=condidate_vk_id,
+                                  user_id = user.user_id,
+                                  name = data[0],
+                                  foto1 = data[2],
+                                  foto2 = data[3],
+                                  foto3 = data[4])
+
         session.add(new_condidate)
         session.commit()
-        condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
-    condidat.name = data[0]
-    condidat.foto1 = data[2]
-    condidat.foto2 = data[3]
-    condidat.foto3 = data[4]
-
-    condidat.user_id = user.user_id
-    session.commit()
-    session.close()
+        session.close()
+    else:
+        session.close()
 
 def get_serch_data(vk_id):
     session = Session()
@@ -68,6 +68,7 @@ def add_block(c_vk_id):
     condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()
     block = session.query(Block).filter(Block.condidate_id == condidat.condidate_id).first()
     user = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()
+    session.close()
 
     if block is None:
         new_block = Block(user_id=user.user_id, condidate_id=condidat.condidate_id)
@@ -92,7 +93,7 @@ def add_favorit(condidate_vk_id):
         session.add(new_favorit)
         session.commit()
         session.close()
-
+    else: session.close()
 # def get_favorit(user_id):
 #     session = Session()
 #     blo = session.query(Favorit, Condidate).filter(Favorit.user_id == user_id).filter(Condidate.user_id == Favorit.user_id).all()
@@ -108,13 +109,18 @@ def get_favorit(user_id):
 
 
 
-    # TODO  тут проблемма возвращает NOne не знаю как исправить
+
 def get_condidat(id):
     session = Session()
-    condidat = session.query(Condidate).filter(Condidate.condidate_id == id).first()
+    condidat = session.query(Condidate).get(id)
+    # session.close()
     return condidat
 
-
+def get_favorit(id):
+    session = Session()
+    favorit = session.query(Condidate).join(Favorit).filter(Favorit.user_id == id).all()
+    session.close()
+    return favorit
 
 def clear_table():
     Base.metadata.drop_all(engine)
@@ -124,14 +130,25 @@ def create_bd():
     Base.metadata.create_all(engine)
     print('Таблицы созданы, база готова к работе')
 
-if __name__ == '__main__':
+def check_none_bd():
     session = Session()
-    print(session.query(Condidate).first())
-    print(*session.query(Favorit).all(), sep='\n')
-    print(session.query(User).first())
-    print(session.query(Favorit).first())
-    print(session.query(Block).first())
-    a = session.query(Condidate).first()
+    session.query(Condidate).filter(Condidate.name == None).delete(synchronize_session='fetch')
+    session.commit()
+    session.close()
+
+
+if __name__ == '__main__':
+    print('\n'.join(list(map(str,(get_favorit(1))))).replace('Link', 'Профиль'))
+    # session = Session()
+    # session.close()
+    # engine.dispose()
+    # session = Session()
+    # print(session.query(Condidate).first())
+    # print(*session.query(Favorit).all(), sep='\n')
+    # print(session.query(User).first())
+    # print(session.query(Favorit).first())
+    # print(session.query(Block).first())
+    # a = session.query(Condidate).first()
     # print(a)
     # session = Session()
     # condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()

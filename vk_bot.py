@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from time import sleep
 
 import vk_api, requests, os
 from vk_api import VkUpload
@@ -35,22 +35,34 @@ def keyboard(first=1):
     keybord.add_button('Показать избранное', VkKeyboardColor.SECONDARY)
     keybord.add_line()
     keybord.add_button('В избранное', VkKeyboardColor.POSITIVE)
-    keybord.add_button('В черный список', VkKeyboardColor.NEGATIVE)
+    keybord.add_button('Больше не показывать', VkKeyboardColor.NEGATIVE)
     return keybord
 
 def attach(data, peer_id):
 
     attachments = []
     for foto in [data.foto1, data.foto2, data.foto3]:
-        p = requests.get(foto)
-        out = open("img.jpg", "wb")
-        out.write(p.content)
-        out.close()
-        upload = VkUpload(vk_session)
-        photo = upload.photo_messages("img.jpg", peer_id=peer_id)
-        attachments.append(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
-        os.remove("img.jpg")
+        try:
+            p = requests.get(foto)
+            out = open("img.jpg", "wb")
+            out.write(p.content)
+            out.close()
+            upload = VkUpload(vk_session)
+            photo = upload.photo_messages("img.jpg", peer_id=peer_id)
+            attachments.append(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
+            os.remove("img.jpg")
+        except requests.exceptions.MissingSchema:
+            continue
+        except vk_api.exceptions.ApiError:
+            continue
     return ','.join(attachments)
+
+def fill_bd(id, offset=0):
+    vk_serch = vk_sercher.VKsercher()
+    vk_serch.search(*ORM.get_serch_data(id), offset=offset)
+    vk_serch.get_photo()
+    for cand_id, data in (vk_serch.data_dict.items()):
+        ORM.add_candidat(cand_id, data, id)
 
 def get_offer(user_vk_id, n=1):
     vk_serch = vk_sercher.VKsercher()
@@ -59,11 +71,12 @@ def get_offer(user_vk_id, n=1):
 
     if offer is None:
         sender(user_vk_id, 'Идет обработка, подождите ....')
-        vk_serch.search(*ORM.get_serch_data(user_vk_id), offset=n)
+        vk_serch.search(*ORM.get_serch_data(user_vk_id), offset=n+20)
         vk_serch.get_photo()
         for cand_id, data in (vk_serch.data_dict.items()):
             ORM.add_candidat(cand_id, data, user_vk_id)
-            return get_offer(user_vk_id, n - 2)
+            sleep(5)
+            return get_offer(user_vk_id, n + 1)
     else:
         if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)):
             return get_offer(user_vk_id, n + 1)
@@ -108,7 +121,7 @@ def main():
 
             if msg == 'в избранное':
                 ORM.add_favorit(offer.condidate_vk_id)
-                sender(id, f'Пользователь {offer.name} добавлен в избранное', keyboard(2))
+                sender(id, f'Пользователь {offer.name} добавлен в избранное {"*" * 35}', keyboard(2))
                 ret = get_offer(id, n + 1)
                 offer = ret[0]
                 n = ret[1]
@@ -117,9 +130,9 @@ def main():
                        attachments=attach(offer, id))
                 # n += 1
 
-            if msg == 'в черный список':
+            if msg == 'больше не показывать':
                 ORM.add_block(offer.condidate_vk_id)
-                sender(id, f'Пользователь {offer.name} добавлен в черный список', keyboard(2))
+                sender(id, f'Пользователь {offer.name} добавлен в черный список \n{("*" * 35)}', keyboard(2))
                 ret = get_offer(id, n + 1)
                 offer = ret[0]
                 n = ret[1]
@@ -129,7 +142,8 @@ def main():
                 # n += 1
 
             if msg == 'показать избранное':
-                sender(id, 'Пока так не уменю2, но скоро научусь', keyboard(2))
+                text = '\n'.join(list(map(str,(ORM.get_favorit(ORM.get_user_id_bd(id)))))).replace('Link', 'Профиль')
+                sender(id, text, keyboard(2))
 
 if __name__ == '__main__':
     # ORM.create_bd()
