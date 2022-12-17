@@ -23,18 +23,23 @@ class Condidate(Base):
     foto1 = Column(String)
     foto2 = Column(String)
     foto3 = Column(String)
-    users = relationship('User', backref = 'user_acount')
+    userss = relationship('User', backref = 'user_acount')
 
     def __repr__(self):
-        return f'{self.name}  --- vk_id = {self.condidate_vk_id} --- id_bd = {self.condidate_id}'
+        return f'{self.name}  --- Link = https://vk.com/id{self.condidate_vk_id}'
 
 class Favorit(Base):
     __tablename__ = 'favorit'
     id = Column(Integer, primary_key = True)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
     condidate_id = Column(Integer, ForeignKey('condidate.condidate_id'), nullable=False)
+    name = Column(String)
+    link = Column(String)
     users_favorit = relationship('User', backref='acount_user')
     condidat = relationship('Condidate', backref='condidat')
+
+    def __repr__(self):
+        return f'{self.condidate_id} --- '
 
 class Block(Base):
     __tablename__ = 'block'

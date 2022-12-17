@@ -54,7 +54,9 @@ def attach(data, peer_id):
 
 def get_offer(user_vk_id, n=1):
     vk_serch = vk_sercher.VKsercher()
+
     offer = ORM.get_condidat(n)
+
     if offer is None:
         sender(user_vk_id, 'Идет обработка, подождите ....')
         vk_serch.search(*ORM.get_serch_data(user_vk_id), offset=n)
@@ -62,11 +64,11 @@ def get_offer(user_vk_id, n=1):
         for cand_id, data in (vk_serch.data_dict.items()):
             ORM.add_candidat(cand_id, data, user_vk_id)
             return get_offer(user_vk_id, n - 2)
-        # TODO check logic
-    if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)):
-        return get_offer(user_vk_id, n + 1)
     else:
-        return (offer, n )
+        if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)):
+            return get_offer(user_vk_id, n + 1)
+        else:
+            return (offer, n)
 
 
 def main():
@@ -89,6 +91,7 @@ def main():
                 vk_serch.get_photo()
                 for cand_id, data in (vk_serch.data_dict.items()):
                     ORM.add_candidat(cand_id, data, id)
+
                 ret = get_offer(id, n)
                 offer = ret[0]
                 n = ret[1]
@@ -131,3 +134,4 @@ def main():
 if __name__ == '__main__':
     # ORM.create_bd()
     main()
+    # ORM.get_favorit(1)

@@ -2,10 +2,10 @@ from sqlalchemy import create_engine, select, Column
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy_utils import database_exists, create_database
 
-from .models import  User, Condidate, Favorit, Block, Base
+from database.models import  User, Condidate, Favorit, Block, Base
 from settings import database_cinfig
 
-# Base = declarative_base(
+# Base = declarative_base()
 engine = create_engine(database_cinfig.url, echo=False)
 Session = sessionmaker(bind=engine)
 
@@ -63,11 +63,11 @@ def get_serch_data(vk_id):
     session.close()
     return (user.age, sex, user.city)
 
-def add_block(condidate_vk_id):
+def add_block(c_vk_id):
     session = Session()
-    condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
+    condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()
     block = session.query(Block).filter(Block.condidate_id == condidat.condidate_id).first()
-    user = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
+    user = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()
 
     if block is None:
         new_block = Block(user_id=user.user_id, condidate_id=condidat.condidate_id)
@@ -88,10 +88,17 @@ def add_favorit(condidate_vk_id):
     user = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
 
     if favorit is None:
-        new_favorit = Favorit(user_id=user.user_id, condidate_id=condidat.condidate_id)
+        new_favorit = Favorit(user_id=user.user_id, condidate_id=condidat.condidate_id, name = condidat.name, link = f'https://vk.com/id + {condidat.condidate_vk_id}')
         session.add(new_favorit)
         session.commit()
         session.close()
+
+# def get_favorit(user_id):
+#     session = Session()
+#     blo = session.query(Favorit, Condidate).filter(Favorit.user_id == user_id).filter(Condidate.user_id == Favorit.user_id).all()
+#     print(set(blo))
+#     session.close()
+#     return set([x for x in blo])
 '''        
 def get_favorit(user_id):
     session = Session()
@@ -101,7 +108,7 @@ def get_favorit(user_id):
 
 
 
-
+    # TODO  тут проблемма возвращает NOne не знаю как исправить
 def get_condidat(id):
     session = Session()
     condidat = session.query(Condidate).filter(Condidate.condidate_id == id).first()
@@ -118,8 +125,20 @@ def create_bd():
     print('Таблицы созданы, база готова к работе')
 
 if __name__ == '__main__':
-    clear_table()
-    create_bd()
+    session = Session()
+    print(session.query(Condidate).first())
+    print(*session.query(Favorit).all(), sep='\n')
+    print(session.query(User).first())
+    print(session.query(Favorit).first())
+    print(session.query(Block).first())
+    a = session.query(Condidate).first()
+    # print(a)
+    # session = Session()
+    # condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()
+#     print(get_user_id_bd(1153507))
+#     print(get_condidat(1).name)
+#     clear_table()
+#     create_bd()
 
     # print(get_serch_data(1153507))
     #

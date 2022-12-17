@@ -13,7 +13,7 @@ class VKsercher:
 
     def search(self, age, sex, city, offset=0):
         ''' Ищет пользователей, с открытым аком, по указанным параметрам
-        return Словарь id : Имя, примерный возраст '''
+             Словарь id : Имя, примерный возраст '''
         offers = self.vk.users.search(
                                 sort=0 ,
                                 sex= sex,
@@ -21,11 +21,11 @@ class VKsercher:
                                 age_from= age - 3,
                                 age_to= age + 3,
                                 has_photo= 1,
-                                count= 20,
+                                count= 50,
                                 online= 1,
                                 hometown= city,
                                 is_closed= False,
-                                offset = offset + 400,  # check 200 , retern error index
+                                offset = offset + 70,
                                 fields=('photo_max_orig', 'bdate')
                                )
 
@@ -51,13 +51,13 @@ class VKsercher:
         user = self.vk.users.get(user_ids=id, fields = ('bdate', 'city','sex') )
         return user[0]
 
-# if __name__ == '__main__':
-#
-#     serch = VKsercher()
-#     print(serch.get_user_info())
-#     serch.search(30,1,'Москва',offset=70)
-#     serch.get_photo()
-#     print(serch.data_dict)
+if __name__ == '__main__':
+
+    serch = VKsercher()
+    print(serch.get_user_info(1153507))
+    serch.search(30,1,'Москва',offset=70)
+    serch.get_photo()
+    print(serch.data_dict)
 
 
 
