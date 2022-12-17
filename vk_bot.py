@@ -53,12 +53,21 @@ def attach(data, peer_id):
     return ','.join(attachments)
 
 def get_offer(user_vk_id, n=1):
+    vk_serch = vk_sercher.VKsercher()
     offer = ORM.get_condidat(n)
-    if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)) or offer is None:
+    if offer is None:
+        sender(user_vk_id, 'Идет обработка, подождите ....')
+        vk_serch.search(*ORM.get_serch_data(user_vk_id), offset=n)
+        vk_serch.get_photo()
+        for cand_id, data in (vk_serch.data_dict.items()):
+            ORM.add_candidat(cand_id, data, user_vk_id)
+            return get_offer(user_vk_id, n - 2)
+        # TODO check logic
+    if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)):
         return get_offer(user_vk_id, n + 1)
     else:
-        return offer
-    # TODO check logic
+        return (offer, n )
+
 
 def main():
     vk_serch = vk_sercher.VKsercher()
@@ -80,12 +89,15 @@ def main():
                 vk_serch.get_photo()
                 for cand_id, data in (vk_serch.data_dict.items()):
                     ORM.add_candidat(cand_id, data, id)
-
-                offer = get_offer(id)
+                ret = get_offer(id, n)
+                offer = ret[0]
+                n = ret[1]
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2), attachments=attach(offer,id) )
 
             if msg == 'следущий':
-                offer = get_offer(id, n + 1)
+                ret = get_offer(id, n + 1)
+                offer = ret[0]
+                n = ret[1]
 
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=attach(offer, id))
@@ -93,19 +105,25 @@ def main():
 
             if msg == 'в избранное':
                 ORM.add_favorit(offer.condidate_vk_id)
-                offer = ORM.get_condidat(1 + n)
-                sender(id, f'Пользователь {offer.name} добавлен в блок', keyboard(2))
+                sender(id, f'Пользователь {offer.name} добавлен в избранное', keyboard(2))
+                ret = get_offer(id, n + 1)
+                offer = ret[0]
+                n = ret[1]
+
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=attach(offer, id))
-                n += 1   #TODO check next
+                # n += 1
 
             if msg == 'в черный список':
                 ORM.add_block(offer.condidate_vk_id)
-                offer = ORM.get_condidat(1 + n)
-                sender(id, f'Пользователь {offer.name} добавлен в блок', keyboard(2))
+                sender(id, f'Пользователь {offer.name} добавлен в черный список', keyboard(2))
+                ret = get_offer(id, n + 1)
+                offer = ret[0]
+                n = ret[1]
+
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=attach(offer, id))
-                n += 1  #TODO check next
+                # n += 1
 
             if msg == 'показать избранное':
                 sender(id, 'Пока так не уменю2, но скоро научусь', keyboard(2))

@@ -88,7 +88,7 @@ def add_favorit(condidate_vk_id):
     user = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
 
     if favorit is None:
-        new_favorit = Block(user_id=user.user_id, condidate_id=condidat.condidate_id)
+        new_favorit = Favorit(user_id=user.user_id, condidate_id=condidat.condidate_id)
         session.add(new_favorit)
         session.commit()
         session.close()
@@ -119,6 +119,7 @@ def create_bd():
 
 if __name__ == '__main__':
     clear_table()
+    create_bd()
 
     # print(get_serch_data(1153507))
     #

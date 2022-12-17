@@ -25,7 +25,7 @@ class VKsercher:
                                 online= 1,
                                 hometown= city,
                                 is_closed= False,
-                                offset = offset + 90,
+                                offset = offset + 400,  # check 200 , retern error index
                                 fields=('photo_max_orig', 'bdate')
                                )
 
