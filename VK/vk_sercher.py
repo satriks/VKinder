@@ -21,7 +21,7 @@ class VKsercher:
                                 age_from= age - 3,
                                 age_to= age + 3,
                                 has_photo= 1,
-                                count= 50,
+                                count= 30,
                                 online= 1,
                                 hometown= city,
                                 is_closed= False,

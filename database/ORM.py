@@ -41,18 +41,22 @@ def add_candidat(condidate_vk_id, data, user_vk_id):
     condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
     user = session.query(User).filter(User.vk_id == user_vk_id).first()
     if condidat is None:
-        new_condidate = Condidate(condidate_vk_id=condidate_vk_id,
-                                  user_id = user.user_id,
-                                  name = data[0],
-                                  foto1 = data[2],
-                                  foto2 = data[3],
-                                  foto3 = data[4])
-
+        new_condidate = Condidate(condidate_vk_id=condidate_vk_id ,user_id = user.user_id)
         session.add(new_condidate)
         session.commit()
-        session.close()
-    else:
-        session.close()
+        condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == condidate_vk_id).first()
+    condidat.name = data[0]
+    condidat.foto1 = data[2]
+    try:
+        condidat.foto2 = data[3]
+        condidat.foto3 = data[4]
+    except IndexError:
+        condidat.foto2 = None
+        condidat.foto3 = None
+    condidat.user_id = user.user_id
+    session.commit()
+    session.close()
+
 
 def get_serch_data(vk_id):
     session = Session()
@@ -113,7 +117,7 @@ def get_favorit(user_id):
 def get_condidat(id):
     session = Session()
     condidat = session.query(Condidate).get(id)
-    # session.close()
+    session.close()
     return condidat
 
 def get_favorit(id):

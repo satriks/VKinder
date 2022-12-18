@@ -52,8 +52,10 @@ def attach(data, peer_id):
             attachments.append(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
             os.remove("img.jpg")
         except requests.exceptions.MissingSchema:
+            print('Для отладки requests.exceptions.MissingSchema')
             continue
         except vk_api.exceptions.ApiError:
+            print('Для отладки vk_api.exceptions.ApiError')
             continue
     return ','.join(attachments)
 
@@ -64,6 +66,7 @@ def fill_bd(id, offset=0):
     for cand_id, data in (vk_serch.data_dict.items()):
         ORM.add_candidat(cand_id, data, id)
 
+
 def get_offer(user_vk_id, n=1):
     vk_serch = vk_sercher.VKsercher()
 
@@ -71,12 +74,10 @@ def get_offer(user_vk_id, n=1):
 
     if offer is None:
         sender(user_vk_id, 'Идет обработка, подождите ....')
-        vk_serch.search(*ORM.get_serch_data(user_vk_id), offset=n+20)
-        vk_serch.get_photo()
-        for cand_id, data in (vk_serch.data_dict.items()):
-            ORM.add_candidat(cand_id, data, user_vk_id)
-            sleep(5)
-            return get_offer(user_vk_id, n + 1)
+        # TODO подумать над дозагрузкой базы через асинхрон, иногда дозагрузка медленней и проскакивает, пока решил слипом
+        fill_bd(user_vk_id, n +30)
+        sleep(7)
+        return get_offer(user_vk_id, n + 1)
     else:
         if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)):
             return get_offer(user_vk_id, n + 1)
@@ -100,20 +101,17 @@ def main():
             if msg == 'подобрать':
                 sender(id, 'Идет обработка, подождите ....')
 
-                vk_serch.search(*ORM.get_serch_data(id))
-                vk_serch.get_photo()
-                for cand_id, data in (vk_serch.data_dict.items()):
-                    ORM.add_candidat(cand_id, data, id)
+                fill_bd(id)
 
-                ret = get_offer(id, n)
-                offer = ret[0]
-                n = ret[1]
+                res = get_offer(id, n)
+                offer = res[0]
+                n = res[1]
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2), attachments=attach(offer,id) )
 
             if msg == 'следущий':
-                ret = get_offer(id, n + 1)
-                offer = ret[0]
-                n = ret[1]
+                res = get_offer(id, n + 1)
+                offer = res[0]
+                n = res[1]
 
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=attach(offer, id))
@@ -122,9 +120,9 @@ def main():
             if msg == 'в избранное':
                 ORM.add_favorit(offer.condidate_vk_id)
                 sender(id, f'Пользователь {offer.name} добавлен в избранное {"*" * 35}', keyboard(2))
-                ret = get_offer(id, n + 1)
-                offer = ret[0]
-                n = ret[1]
+                res = get_offer(id, n + 1)
+                offer = res[0]
+                n = res[1]
 
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=attach(offer, id))
@@ -133,9 +131,9 @@ def main():
             if msg == 'больше не показывать':
                 ORM.add_block(offer.condidate_vk_id)
                 sender(id, f'Пользователь {offer.name} добавлен в черный список \n{("*" * 35)}', keyboard(2))
-                ret = get_offer(id, n + 1)
-                offer = ret[0]
-                n = ret[1]
+                res = get_offer(id, n + 1)
+                offer = res[0]
+                n = res[1]
 
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=attach(offer, id))
@@ -144,7 +142,7 @@ def main():
             if msg == 'показать избранное':
                 text = '\n'.join(list(map(str,(ORM.get_favorit(ORM.get_user_id_bd(id)))))).replace('Link', 'Профиль')
                 sender(id, text, keyboard(2))
-
+            print(n)
 if __name__ == '__main__':
     # ORM.create_bd()
     main()
