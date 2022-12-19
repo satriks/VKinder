@@ -46,26 +46,26 @@ def keyboard(first=1):
     keybord.add_button('Больше не показывать', VkKeyboardColor.NEGATIVE)
     return keybord
 
-def attach(data, peer_id):
-
-    attachments = []
-    for foto in [data.foto1, data.foto2, data.foto3]:
-        try:
-            p = requests.get(foto)
-            out = open("img.jpg", "wb")
-            out.write(p.content)
-            out.close()
-            upload = VkUpload(vk_session)
-            photo = upload.photo_messages("img.jpg", peer_id=peer_id)
-            attachments.append(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
-            os.remove("img.jpg")
-        except requests.exceptions.MissingSchema:
-            print('Для отладки requests.exceptions.MissingSchema')
-            continue
-        except vk_api.exceptions.ApiError:
-            print('Для отладки vk_api.exceptions.ApiError')
-            continue
-    return ','.join(attachments)
+# def attach(data, peer_id):
+#
+#     attachments = []
+#     for foto in [data.foto1, data.foto2, data.foto3]:
+#         try:
+#             p = requests.get(foto)
+#             out = open("img.jpg", "wb")
+#             out.write(p.content)
+#             out.close()
+#             upload = VkUpload(vk_session)
+#             photo = upload.photo_messages("img.jpg", peer_id=peer_id)
+#             attachments.append(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
+#             os.remove("img.jpg")
+#         except requests.exceptions.MissingSchema:
+#             print('Для отладки requests.exceptions.MissingSchema')
+#             continue
+#         except vk_api.exceptions.ApiError:
+#             print('Для отладки vk_api.exceptions.ApiError')
+#             continue
+#     return ','.join(attachments)
 
 def fill_bd(id, offset=0):
     vk_serch = vk_sercher.VKsercher()
@@ -165,15 +165,29 @@ def main():
 
             if msg == 'фото1':
                 data_foto = offer.foto1.split('_')
-                if vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1]):
+                if vk_serch.check_like(data_foto[0].replace('photo',''), data_foto[1]):
+                    vk_serch.delete_like(data_foto[0].replace('photo',''), data_foto[1])
+                    sender(id, f'Лайк для фото1 удален')
+                else:
+                    vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1])
                     sender(id, f'Лайк для фото1 отправлен')
+
             if msg == 'фото2':
                 data_foto = offer.foto2.split('_')
-                if vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1]):
+                if vk_serch.check_like(data_foto[0].replace('photo', ''), data_foto[1]):
+                    vk_serch.delete_like(data_foto[0].replace('photo', ''), data_foto[1])
+                    sender(id, f'Лайк для фото2 удален')
+                else:
+                    vk_serch.add_like(data_foto[0].replace('photo', ''), data_foto[1])
                     sender(id, f'Лайк для фото2 отправлен')
+
             if msg == 'фото3':
                 data_foto = offer.foto3.split('_')
-                if vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1]):
+                if vk_serch.check_like(data_foto[0].replace('photo', ''), data_foto[1]):
+                    vk_serch.delete_like(data_foto[0].replace('photo', ''), data_foto[1])
+                    sender(id, f'Лайк для фото3 удален')
+                else:
+                    vk_serch.add_like(data_foto[0].replace('photo', ''), data_foto[1])
                     sender(id, f'Лайк для фото3 отправлен')
 
             print(n)

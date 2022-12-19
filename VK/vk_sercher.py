@@ -24,21 +24,25 @@ class VKsercher:
     def search(self, age, sex, city, offset=0):
         ''' Ищет пользователей, с открытым аком, по указанным параметрам
              Словарь id : Имя, примерный возраст '''
+
+
+
+
         offers = self.vk.users.search(
-                                sort=0 ,
+                                sort=0,
                                 sex= sex,
                                 status= 1,
-                                age_from= age - 2,
-                                age_to= age + 5 ,
+                                age_from= age - 5,
+                                age_to= age + 5,
                                 has_photo= 1,
                                 count= 50,
                                 online= 0,
                                 hometown= city,
                                 is_closed= False,
-                                offset = offset ,
+                                offset = offset,
                                 fields=('photo_max_orig', 'bdate')
                                )
-
+        print(offers)
         for data in offers['items']:
             if data['is_closed'] == False:
 
@@ -82,6 +86,22 @@ class VKsercher:
 
     def add_like(self, owner_id, item_id):
         res = self.vk.likes.add(type = 'photo',
+                          owner_id = owner_id,
+                          item_id = item_id,
+                          access_token = vk_token_client )
+        if res['likes']:
+            return 1
+        else: return 0
+
+    def check_like(self, owner_id, item_id):
+        res = self.vk.likes.isLiked(type = 'photo',
+                          owner_id = owner_id,
+                          item_id = item_id,
+                          access_token = vk_token_client )
+        return res['liked']
+
+    def delete_like(self, owner_id, item_id):
+        res = self.vk.likes.delete(type = 'photo',
                           owner_id = owner_id,
                           item_id = item_id,
                           access_token = vk_token_client )
