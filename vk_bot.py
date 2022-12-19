@@ -1,17 +1,13 @@
 from datetime import datetime
 from time import sleep
 
-import vk_api, requests, os
-from vk_api import VkUpload
+import vk_api
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkLongPoll, VkEventType
 
-from config import token_group
 from VK import vk_sercher
+from settings.vk_config import token_group
 from database import ORM
-import  asyncio
-
-
 
 vk_session = vk_api.VkApi(token=token_group)
 session_api = vk_session.get_api()
@@ -19,12 +15,13 @@ longpool = VkLongPoll(vk_session)
 
 
 def sender(id, text, keybord=None, attachments=None):
-    post = {'user_id': id, 'message': text, 'random_id': 0 }
+    post = {'user_id': id, 'message': text, 'random_id': 0}
     if keybord != None:
         post['keyboard'] = keybord.get_keyboard()
     if attachments:
         post['attachment'] = attachments
     vk_session.method('messages.send', post)
+
 
 def like_keyboard():
     like_keybord = VkKeyboard(one_time=False, inline=True)
@@ -33,6 +30,7 @@ def like_keyboard():
     like_keybord.add_button('Фото3', VkKeyboardColor.POSITIVE)
 
     return like_keybord
+
 
 def keyboard(first=1):
     keybord = VkKeyboard(one_time=False, inline=False)
@@ -46,26 +44,6 @@ def keyboard(first=1):
     keybord.add_button('Больше не показывать', VkKeyboardColor.NEGATIVE)
     return keybord
 
-# def attach(data, peer_id):
-#
-#     attachments = []
-#     for foto in [data.foto1, data.foto2, data.foto3]:
-#         try:
-#             p = requests.get(foto)
-#             out = open("img.jpg", "wb")
-#             out.write(p.content)
-#             out.close()
-#             upload = VkUpload(vk_session)
-#             photo = upload.photo_messages("img.jpg", peer_id=peer_id)
-#             attachments.append(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
-#             os.remove("img.jpg")
-#         except requests.exceptions.MissingSchema:
-#             print('Для отладки requests.exceptions.MissingSchema')
-#             continue
-#         except vk_api.exceptions.ApiError:
-#             print('Для отладки vk_api.exceptions.ApiError')
-#             continue
-#     return ','.join(attachments)
 
 def fill_bd(id, offset=0):
     vk_serch = vk_sercher.VKsercher()
@@ -74,20 +52,20 @@ def fill_bd(id, offset=0):
     for cand_id, data in (vk_serch.data_dict.items()):
         ORM.add_candidat(cand_id, data, id)
 
-def check( user_vk_id, n):
+
+def check(user_vk_id, n):
     if abs(n - ORM.last_id()) < 10:
-        fill_bd(user_vk_id, n+50)
+        fill_bd(user_vk_id, n + 50)
         sleep(3)
         print('fill отладка')
 
 
 def get_offer(user_vk_id, n=1):
-
     offer = ORM.get_condidat(n)
 
     if offer is None:
         sender(user_vk_id, 'Идет обработка, подождите ....')
-        fill_bd(user_vk_id, n +30)
+        fill_bd(user_vk_id, n + 30)
         return get_offer(user_vk_id, n + 1)
     else:
         if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)):
@@ -112,13 +90,12 @@ def main():
 
             if msg == 'подобрать':
                 sender(id, 'Идет обработка, подождите ....')
-
                 fill_bd(id)
-
                 res = get_offer(id, n)
                 offer = res[0]
                 n = res[1]
-                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2), attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3 )
+                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
+                       attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3)
                 sender(id, f'поставить лайк?', like_keyboard())
 
             if msg == 'следущий':
@@ -126,14 +103,9 @@ def main():
                 offer = res[0]
                 n = res[1]
 
-                # sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
-                #        attachments=attach(offer, id))
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3)
                 sender(id, f'поставить лайк?', like_keyboard())
-
-
-
 
             if msg == 'в избранное':
                 ORM.add_favorit(offer.condidate_vk_id)
@@ -145,7 +117,6 @@ def main():
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3)
                 sender(id, f'поставить лайк?', like_keyboard())
-                # n += 1
 
             if msg == 'больше не показывать':
                 ORM.add_block(offer.condidate_vk_id)
@@ -157,19 +128,18 @@ def main():
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3)
                 sender(id, f'поставить лайк?', like_keyboard())
-                # n += 1
 
             if msg == 'показать избранное':
-                text = '\n'.join(list(map(str,(ORM.get_favorit(ORM.get_user_id_bd(id)))))).replace('Link', 'Профиль')
+                text = '\n'.join(list(map(str, (ORM.get_favorit(ORM.get_user_id_bd(id)))))).replace('Link', 'Профиль')
                 sender(id, text, keyboard(2))
 
             if msg == 'фото1':
                 data_foto = offer.foto1.split('_')
-                if vk_serch.check_like(data_foto[0].replace('photo',''), data_foto[1]):
-                    vk_serch.delete_like(data_foto[0].replace('photo',''), data_foto[1])
+                if vk_serch.check_like(data_foto[0].replace('photo', ''), data_foto[1]):
+                    vk_serch.delete_like(data_foto[0].replace('photo', ''), data_foto[1])
                     sender(id, f'Лайк для фото1 удален')
                 else:
-                    vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1])
+                    vk_serch.add_like(data_foto[0].replace('photo', ''), data_foto[1])
                     sender(id, f'Лайк для фото1 отправлен')
 
             if msg == 'фото2':
@@ -190,8 +160,9 @@ def main():
                     vk_serch.add_like(data_foto[0].replace('photo', ''), data_foto[1])
                     sender(id, f'Лайк для фото3 отправлен')
 
-            print(n)
+
+
+
 if __name__ == '__main__':
-    # ORM.create_bd()
+    ORM.create_bd()
     main()
-    # ORM.get_favorit(1)
