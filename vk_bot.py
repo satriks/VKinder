@@ -9,6 +9,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from config import token_group
 from VK import vk_sercher
 from database import ORM
+import  asyncio
 
 
 
@@ -25,6 +26,13 @@ def sender(id, text, keybord=None, attachments=None):
         post['attachment'] = attachments
     vk_session.method('messages.send', post)
 
+def like_keyboard():
+    like_keybord = VkKeyboard(one_time=False, inline=True)
+    like_keybord.add_button('Фото1', VkKeyboardColor.POSITIVE)
+    like_keybord.add_button('Фото2', VkKeyboardColor.POSITIVE)
+    like_keybord.add_button('Фото3', VkKeyboardColor.POSITIVE)
+
+    return like_keybord
 
 def keyboard(first=1):
     keybord = VkKeyboard(one_time=False, inline=False)
@@ -66,9 +74,14 @@ def fill_bd(id, offset=0):
     for cand_id, data in (vk_serch.data_dict.items()):
         ORM.add_candidat(cand_id, data, id)
 
+def check( user_vk_id, n):
+    if abs(n - ORM.last_id()) < 10:
+        fill_bd(user_vk_id, n+50)
+        sleep(3)
+        print('fill отладка')
+
 
 def get_offer(user_vk_id, n=1):
-    vk_serch = vk_sercher.VKsercher()
 
     offer = ORM.get_condidat(n)
 
@@ -76,12 +89,12 @@ def get_offer(user_vk_id, n=1):
         sender(user_vk_id, 'Идет обработка, подождите ....')
         # TODO подумать над дозагрузкой базы через асинхрон, иногда дозагрузка медленней и проскакивает, пока решил слипом
         fill_bd(user_vk_id, n +30)
-        sleep(7)
         return get_offer(user_vk_id, n + 1)
     else:
         if offer.condidate_id in ORM.get_block(ORM.get_user_id_bd(user_vk_id)):
             return get_offer(user_vk_id, n + 1)
         else:
+            check(user_vk_id, n)
             return (offer, n)
 
 
@@ -115,6 +128,8 @@ def main():
 
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
                        attachments=attach(offer, id))
+                sender(id, f'поставить лайк?', like_keyboard())
+
 
 
             if msg == 'в избранное':
@@ -142,6 +157,16 @@ def main():
             if msg == 'показать избранное':
                 text = '\n'.join(list(map(str,(ORM.get_favorit(ORM.get_user_id_bd(id)))))).replace('Link', 'Профиль')
                 sender(id, text, keyboard(2))
+
+            if msg == 'фото1':
+                p = requests.get(offer.foto1)
+                out = open("img.jpg", "wb")
+                out.write(p.content)
+                out.close()
+                upload = VkUpload(vk_session)
+                photo = upload.photo_messages("img.jpg", peer_id=id)
+                print(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
+                # TODO соеденить с отправкой лайка, в модуле sercher пока принт
             print(n)
 if __name__ == '__main__':
     # ORM.create_bd()

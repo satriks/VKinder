@@ -98,22 +98,12 @@ def add_favorit(condidate_vk_id):
         session.commit()
         session.close()
     else: session.close()
-# def get_favorit(user_id):
-#     session = Session()
-#     blo = session.query(Favorit, Condidate).filter(Favorit.user_id == user_id).filter(Condidate.user_id == Favorit.user_id).all()
-#     print(set(blo))
-#     session.close()
-#     return set([x for x in blo])
-'''        
-def get_favorit(user_id):
+
+def last_id():
     session = Session()
-    blo = session.query(Favorit).filter(Favorit.user_id == user_id).all()
-    return [i.condidate_id for i in blo]     # можно попробовать через репр вывод сделть , смотря как буду выводить избранное 
-'''
-
-
-
-
+    condidat = session.query(Condidate).order_by(Condidate.condidate_id.desc()).first()
+    session.close()
+    return condidat.condidate_id
 def get_condidat(id):
     session = Session()
     condidat = session.query(Condidate).get(id)
@@ -142,7 +132,7 @@ def check_none_bd():
 
 
 if __name__ == '__main__':
-    print('\n'.join(list(map(str,(get_favorit(1))))).replace('Link', 'Профиль'))
+    # print(last_id())
     # session = Session()
     # session.close()
     # engine.dispose()
@@ -158,8 +148,8 @@ if __name__ == '__main__':
     # condidat = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()
 #     print(get_user_id_bd(1153507))
 #     print(get_condidat(1).name)
-#     clear_table()
-#     create_bd()
+    clear_table()
+    create_bd()
 
     # print(get_serch_data(1153507))
     #
