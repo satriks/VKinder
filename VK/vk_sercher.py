@@ -1,8 +1,11 @@
-import vk_api, requests
+import vk_api, requests, json
 from config import token_group, vk_token_client, id_group
 from datetime import datetime, timedelta
-
-
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from time import sleep
 
 # vk_session = vk_api.VkApi(token=token_client)
 # vk = vk_session.get_api()
@@ -50,9 +53,10 @@ class VKsercher:
             if len(self.data_dict.get(id)) > 2 :
                 continue
             else:
-                photo = self.vk.photos.getAll(owner_id=id, photo_sizes =1 , extended= 1)   # TODO подумать может переделать на photos.getById что бы на этом этапе получать id фото для атача
-                self.data_dict[id] = self.data_dict.get(id) + (list(map(lambda x : x[1],(sorted([(x['likes']['count'], x['sizes'][-1]['url']  ) for x in photo['items']])[-1:-4:-1]))))
-
+                photo = self.vk.photos.getAll(owner_id=id, photo_sizes =1 , extended= 1)
+                self.data_dict[id] = self.data_dict.get(id) + (list(map(lambda x : x[1],(sorted([(x['likes']['count'], f'photo{x["owner_id"]}_{x["id"]}_{vk_token_client}'  ) for x in photo['items']])[-1:-4:-1]))))
+                # self.data_dict[id] = self.data_dict.get(id) + (list(map(lambda x : x[1],(sorted([(x['likes']['count'], x['sizes'][-1]['url']  ) for x in photo['items']])[-1:-4:-1]))))
+                # f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}'
     # TODO Требует личный токен пользователя что бы показать где он отмечен
     # def get_photo_notice(self):
     #     ''' Добавляет в к найденным акайнтам 3 самы популярные их фото'''
@@ -70,20 +74,31 @@ class VKsercher:
         user = self.vk.users.get(user_ids=id, fields = ('bdate', 'city','sex') )
         return user[0]
 
-    def access_token(self):
-        pass
+    # def access_token(self):
+    #     s = Service(r'C:\Users\админ\PycharmProjects\netology_test\chromedriver.exe')
+    #     driver = webdriver.Chrome(service=s)
+    #     driver.get('https://oauth.vk.com/authorize?client_id=51507079&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=friends,wall,massege,groups&response_type=token&v=5.131&state=123456')
+    #     sleep(2000)
 
-    def add_like(self):
-        pass
-        # TODO создать функцию для лайков
+    def add_like(self, owner_id, item_id):
+        res = self.vk.likes.add(type = 'photo',
+                          owner_id = owner_id,
+                          item_id = item_id,
+                          access_token = vk_token_client )
+        if res['likes']:
+            return 1
+        else: return 0
 
-if __name__ == '__main__':
-    serch = VKsercher()
 
-    serch.search(30, 1, 'Москва', offset=70)
-    # serch.get_user_info(1153507)
-    serch.get_photo_notice()
-
+# if __name__ == '__main__':
+    # serch = VKsercher()
+    #
+    # serch.search(30, 1, 'Москва', offset=70)
+    # # serch.get_user_info(1153507)
+    # serch.get_photo()
+    # res = requests.get('https://oauth.vk.com/authorize?client_id=51507079&display=popup&redirect_uri=https://oauth.vk.com/blank.html&scope=photos,friends,wall,massege,groups&response_type=token&v=5.131&state=123456')
+    # print(res.url)
+    # serch.access_token()
     # serch.get_photo()
     # print(serch.data_dict)
 

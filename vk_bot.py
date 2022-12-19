@@ -87,7 +87,6 @@ def get_offer(user_vk_id, n=1):
 
     if offer is None:
         sender(user_vk_id, 'Идет обработка, подождите ....')
-        # TODO подумать над дозагрузкой базы через асинхрон, иногда дозагрузка медленней и проскакивает, пока решил слипом
         fill_bd(user_vk_id, n +30)
         return get_offer(user_vk_id, n + 1)
     else:
@@ -119,16 +118,20 @@ def main():
                 res = get_offer(id, n)
                 offer = res[0]
                 n = res[1]
-                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2), attachments=attach(offer,id) )
+                sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2), attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3 )
+                sender(id, f'поставить лайк?', like_keyboard())
 
             if msg == 'следущий':
                 res = get_offer(id, n + 1)
                 offer = res[0]
                 n = res[1]
 
+                # sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
+                #        attachments=attach(offer, id))
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
-                       attachments=attach(offer, id))
+                       attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3)
                 sender(id, f'поставить лайк?', like_keyboard())
+
 
 
 
@@ -140,7 +143,8 @@ def main():
                 n = res[1]
 
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
-                       attachments=attach(offer, id))
+                       attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3)
+                sender(id, f'поставить лайк?', like_keyboard())
                 # n += 1
 
             if msg == 'больше не показывать':
@@ -151,7 +155,8 @@ def main():
                 n = res[1]
 
                 sender(id, f'{offer.name}\nhttps://vk.com/id{offer.condidate_vk_id}', keyboard(2),
-                       attachments=attach(offer, id))
+                       attachments=offer.foto1 + ',' + offer.foto2 + ',' + offer.foto3)
+                sender(id, f'поставить лайк?', like_keyboard())
                 # n += 1
 
             if msg == 'показать избранное':
@@ -159,14 +164,18 @@ def main():
                 sender(id, text, keyboard(2))
 
             if msg == 'фото1':
-                p = requests.get(offer.foto1)
-                out = open("img.jpg", "wb")
-                out.write(p.content)
-                out.close()
-                upload = VkUpload(vk_session)
-                photo = upload.photo_messages("img.jpg", peer_id=id)
-                print(f'photo{photo[0]["owner_id"]}_{photo[0]["id"]}_{photo[0]["access_key"]}')
-                # TODO соеденить с отправкой лайка, в модуле sercher пока принт
+                data_foto = offer.foto1.split('_')
+                if vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1]):
+                    sender(id, f'Лайк для фото1 отправлен')
+            if msg == 'фото2':
+                data_foto = offer.foto2.split('_')
+                if vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1]):
+                    sender(id, f'Лайк для фото2 отправлен')
+            if msg == 'фото3':
+                data_foto = offer.foto3.split('_')
+                if vk_serch.add_like(data_foto[0].replace('photo',''), data_foto[1]):
+                    sender(id, f'Лайк для фото3 отправлен')
+
             print(n)
 if __name__ == '__main__':
     # ORM.create_bd()
