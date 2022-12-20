@@ -130,7 +130,7 @@ def get_favorit(id):
     return favorit
 
 
-def clear_table():
+def clear():
     Base.metadata.drop_all(engine)
 
 
