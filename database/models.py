@@ -6,8 +6,8 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'user'
-    user_id = Column(Integer, primary_key=True)
-    vk_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, primary_key=True, index=True)
+    vk_id = Column(Integer, nullable=False, index=True)
     age = Column(Integer)
     city = Column(String)
     sex = Column(Integer)
@@ -18,8 +18,8 @@ class User(Base):
 
 class Condidate(Base):
     __tablename__ = 'condidate'
-    condidate_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
+    condidate_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False, index=True)
     name = Column(String)
     condidate_vk_id = Column(Integer, nullable=False)
     foto1 = Column(String)

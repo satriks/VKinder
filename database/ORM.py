@@ -19,6 +19,7 @@ def get_user_id_bd(vk_id):
     session = Session()
     user = session.query(User).filter(User.vk_id == vk_id).first()
     session.close()
+    engine.dispose()
     return user.user_id
 
 
@@ -35,6 +36,7 @@ def add_user(vk_id, age, city, sex):
     user.sex = sex
     session.commit()
     session.close()
+    engine.dispose()
 
 
 def add_candidat(condidate_vk_id, data, user_vk_id):
@@ -59,7 +61,7 @@ def add_candidat(condidate_vk_id, data, user_vk_id):
     condidat.user_id = user.user_id
     session.commit()
     session.close()
-
+    engine.dispose()
 
 def get_serch_data(vk_id):
     session = Session()
@@ -69,6 +71,7 @@ def get_serch_data(vk_id):
     else:
         sex = 2
     session.close()
+    engine.dispose()
     return (user.age, sex, user.city)
 
 
@@ -78,18 +81,21 @@ def add_block(c_vk_id):
     block = session.query(Block).filter(Block.condidate_id == condidat.condidate_id).first()
     user = session.query(Condidate).filter(Condidate.condidate_vk_id == c_vk_id).first()
     session.close()
+    engine.dispose()
 
     if block is None:
         new_block = Block(user_id=user.user_id, condidate_id=condidat.condidate_id)
         session.add(new_block)
         session.commit()
         session.close()
+        engine.dispose()
 
 
 def get_block(user_id):
     session = Session()
     blo = session.query(Block).filter(Block.user_id == user_id).all()
     session.close()
+    engine.dispose()
     return [i.condidate_id for i in blo]
 
 
@@ -105,14 +111,17 @@ def add_favorit(condidate_vk_id):
         session.add(new_favorit)
         session.commit()
         session.close()
+        engine.dispose()
     else:
         session.close()
+        engine.dispose()
 
 
 def last_id():
     session = Session()
     condidat = session.query(Condidate).order_by(Condidate.condidate_id.desc()).first()
     session.close()
+    engine.dispose()
     return condidat.condidate_id
 
 
@@ -120,6 +129,7 @@ def get_condidat(id):
     session = Session()
     condidat = session.query(Condidate).get(id)
     session.close()
+    engine.dispose()
     return condidat
 
 
@@ -127,24 +137,25 @@ def get_favorit(id):
     session = Session()
     favorit = session.query(Condidate).join(Favorit).filter(Favorit.user_id == id).all()
     session.close()
+    engine.dispose()
     return favorit
 
 
 def clear():
     Base.metadata.drop_all(engine)
-
+    engine.dispose()
 
 def create_bd():
     check_bd()
     Base.metadata.create_all(engine)
     print('Таблицы созданы, база готова к работе')
-
+    engine.dispose()
 
 def check_none_bd():
     session = Session()
     session.query(Condidate).filter(Condidate.name == None).delete(synchronize_session='fetch')
     session.commit()
     session.close()
-
+    engine.dispose()
 
 
